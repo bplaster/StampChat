@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>CECBE490-0D5A-4826-9408-6B6D2E079436</string>
+	<key>IDESourceControlProjectName</key>
+	<string>StampChat</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>BC737663E168695E2FCF6A7ADECEC30ABEC50CB7</key>
+		<string>github.com:bplaster/StampChat.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>StampChat.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>BC737663E168695E2FCF6A7ADECEC30ABEC50CB7</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:bplaster/StampChat.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>BC737663E168695E2FCF6A7ADECEC30ABEC50CB7</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>BC737663E168695E2FCF6A7ADECEC30ABEC50CB7</string>
+			<key>IDESourceControlWCCName</key>
+			<string>StampChat</string>
+		</dict>
+	</array>
+</dict>
+</plist>

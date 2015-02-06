@@ -11,6 +11,8 @@
 		1A97F2B21A8462B500E6ACF5 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A97F2B11A8462B500E6ACF5 /* CoreGraphics.framework */; };
 		1A97F2B51A8462DE00E6ACF5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A97F2B41A8462DE00E6ACF5 /* Foundation.framework */; };
 		1A97F2B71A8462EA00E6ACF5 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A97F2B61A8462EA00E6ACF5 /* UIKit.framework */; };
+		1A97F2BA1A846D9300E6ACF5 /* pencil.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A97F2B91A846D9300E6ACF5 /* pencil.png */; };
+		1A97F2BD1A846E4900E6ACF5 /* save.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A97F2BC1A846E4900E6ACF5 /* save.png */; };
 		1ABF548C1A844B99005BB0D5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABF548B1A844B99005BB0D5 /* main.m */; };
 		1ABF548F1A844B99005BB0D5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABF548E1A844B99005BB0D5 /* AppDelegate.m */; };
 		1ABF54921A844B99005BB0D5 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABF54911A844B99005BB0D5 /* ViewController.m */; };
@@ -35,6 +37,8 @@
 		1A97F2B11A8462B500E6ACF5 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		1A97F2B41A8462DE00E6ACF5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1A97F2B61A8462EA00E6ACF5 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		1A97F2B91A846D9300E6ACF5 /* pencil.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pencil.png; sourceTree = "<group>"; };
+		1A97F2BC1A846E4900E6ACF5 /* save.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = save.png; sourceTree = "<group>"; };
 		1ABF54861A844B99005BB0D5 /* StampChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StampChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1ABF548A1A844B99005BB0D5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1ABF548B1A844B99005BB0D5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -81,6 +85,17 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		1A97F2BB1A846DA500E6ACF5 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1A97F2BC1A846E4900E6ACF5 /* save.png */,
+				1A97F2B91A846D9300E6ACF5 /* pencil.png */,
+				1ABF54961A844B99005BB0D5 /* Images.xcassets */,
+				1A97F2AF1A844D6B00E6ACF5 /* pic.png */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 		1ABF547D1A844B99005BB0D5 = {
 			isa = PBXGroup;
 			children = (
@@ -103,14 +118,13 @@
 		1ABF54881A844B99005BB0D5 /* StampChat */ = {
 			isa = PBXGroup;
 			children = (
+				1A97F2BB1A846DA500E6ACF5 /* Resources */,
 				1ABF548D1A844B99005BB0D5 /* AppDelegate.h */,
 				1ABF548E1A844B99005BB0D5 /* AppDelegate.m */,
 				1ABF54901A844B99005BB0D5 /* ViewController.h */,
 				1ABF54911A844B99005BB0D5 /* ViewController.m */,
 				1ABF54931A844B99005BB0D5 /* Main.storyboard */,
-				1ABF54961A844B99005BB0D5 /* Images.xcassets */,
 				1ABF54981A844B99005BB0D5 /* LaunchScreen.xib */,
-				1A97F2AF1A844D6B00E6ACF5 /* pic.png */,
 				1ABF54891A844B99005BB0D5 /* Supporting Files */,
 			);
 			path = StampChat;
@@ -222,7 +236,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A97F2BA1A846D9300E6ACF5 /* pencil.png in Resources */,
 				1ABF54951A844B99005BB0D5 /* Main.storyboard in Resources */,
+				1A97F2BD1A846E4900E6ACF5 /* save.png in Resources */,
 				1ABF549A1A844B99005BB0D5 /* LaunchScreen.xib in Resources */,
 				1A97F2B01A844D6B00E6ACF5 /* pic.png in Resources */,
 				1ABF54971A844B99005BB0D5 /* Images.xcassets in Resources */,

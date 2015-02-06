@@ -2,7 +2,7 @@
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="14C109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
-        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -18,7 +18,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hhk-h3-9Sh">
-                                <rect key="frame" x="174" y="285" width="63" height="30"/>
+                                <rect key="frame" x="188" y="562" width="63" height="30"/>
                                 <state key="normal" title="Stamp It!">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -26,25 +26,17 @@
                                     <action selector="stampButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ggq-g0-j5Q"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xMG-gj-4iu">
-                                <rect key="frame" x="279" y="285" width="52" height="30"/>
-                                <state key="normal" title="Save It!">
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xMG-gj-4iu">
+                                <rect key="frame" x="285" y="562" width="30" height="30"/>
+                                <state key="normal" image="save.png">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
                                     <action selector="saveButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Yxa-xa-Lop"/>
                                 </connections>
                             </button>
-                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" text="Hello Stamper!" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Hk5-bl-Tef">
-                                <rect key="frame" x="221" y="154" width="158" height="30"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="20"/>
-                                <textInputTraits key="textInputTraits"/>
-                                <connections>
-                                    <action selector="textFieldDidEndOnExit:" destination="BYZ-38-t0r" eventType="editingDidEndOnExit" id="8qh-Wm-FVZ"/>
-                                </connections>
-                            </textField>
                             <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PwI-mS-eLo">
-                                <rect key="frame" x="371" y="285" width="55" height="30"/>
+                                <rect key="frame" x="356" y="562" width="55" height="30"/>
                                 <state key="normal" title="Email It!">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -52,36 +44,49 @@
                                     <action selector="emailButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="JMN-3J-uN8"/>
                                 </connections>
                             </button>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="yQV-DA-q3f">
-                                <rect key="frame" x="0.0" y="323" width="600" height="277"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" secondItem="yQV-DA-q3f" secondAttribute="height" multiplier="3:2" id="6Sf-1n-71g"/>
-                                </constraints>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ycb-HW-Lef">
+                                <rect key="frame" x="554" y="28" width="30" height="30"/>
+                                <state key="normal" image="pencil.png">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
                                 <connections>
-                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="TEK-12-bXC"/>
-                                    <outlet property="delegate" destination="BYZ-38-t0r" id="4Vm-ce-gpI"/>
+                                    <action selector="drawButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="nWC-68-plT"/>
                                 </connections>
-                            </tableView>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HNA-Gl-RYG">
+                                <rect key="frame" x="516" y="23" width="30" height="40"/>
+                                <fontDescription key="fontDescription" name="TimesNewRomanPS-BoldMT" family="Times New Roman" pointSize="36"/>
+                                <state key="normal" title="T">
+                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="textButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="6oy-xD-bZe"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="xXG-ux-4Tf" firstAttribute="top" secondItem="yQV-DA-q3f" secondAttribute="bottom" id="3hB-f8-H0Y"/>
+                            <constraint firstItem="Ycb-HW-Lef" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="1El-l8-cWD"/>
+                            <constraint firstItem="HNA-Gl-RYG" firstAttribute="top" secondItem="gi8-K6-jqA" secondAttribute="bottom" constant="8" id="1UR-Hp-mLi"/>
+                            <constraint firstItem="HNA-Gl-RYG" firstAttribute="centerY" secondItem="Ycb-HW-Lef" secondAttribute="centerY" id="27d-6Z-NIi"/>
+                            <constraint firstItem="xXG-ux-4Tf" firstAttribute="top" secondItem="xMG-gj-4iu" secondAttribute="bottom" constant="8" id="4FI-Hk-xvO"/>
                             <constraint firstItem="PwI-mS-eLo" firstAttribute="leading" secondItem="xMG-gj-4iu" secondAttribute="trailing" constant="40" id="6PU-IL-nIp"/>
-                            <constraint firstAttribute="width" secondItem="yQV-DA-q3f" secondAttribute="width" id="6Zd-SM-ymP"/>
-                            <constraint firstAttribute="centerX" secondItem="yQV-DA-q3f" secondAttribute="centerX" id="8BO-qa-Ydt"/>
-                            <constraint firstItem="yQV-DA-q3f" firstAttribute="top" secondItem="xMG-gj-4iu" secondAttribute="bottom" constant="8" id="BLn-CV-haj"/>
-                            <constraint firstAttribute="centerY" secondItem="Hk5-bl-Tef" secondAttribute="centerY" constant="131" id="Eok-dP-mUc"/>
-                            <constraint firstItem="yQV-DA-q3f" firstAttribute="top" secondItem="hhk-h3-9Sh" secondAttribute="bottom" constant="8" id="H1C-pa-yfA"/>
                             <constraint firstItem="xMG-gj-4iu" firstAttribute="leading" secondItem="hhk-h3-9Sh" secondAttribute="trailing" constant="40" id="Q2v-3F-ZjK"/>
                             <constraint firstAttribute="centerX" secondItem="xMG-gj-4iu" secondAttribute="centerX" id="Q3r-Og-Y3S"/>
-                            <constraint firstItem="yQV-DA-q3f" firstAttribute="top" secondItem="PwI-mS-eLo" secondAttribute="bottom" constant="8" id="msf-A0-bNq"/>
-                            <constraint firstAttribute="centerX" secondItem="Hk5-bl-Tef" secondAttribute="centerX" id="x9Q-Wr-yX5"/>
+                            <constraint firstItem="xXG-ux-4Tf" firstAttribute="top" secondItem="PwI-mS-eLo" secondAttribute="bottom" constant="8" id="Wad-FL-F8r"/>
+                            <constraint firstItem="Ycb-HW-Lef" firstAttribute="top" secondItem="gi8-K6-jqA" secondAttribute="bottom" constant="8" id="aTb-Uz-mA9"/>
+                            <constraint firstItem="xXG-ux-4Tf" firstAttribute="top" secondItem="hhk-h3-9Sh" secondAttribute="bottom" constant="8" id="led-KO-GLc"/>
+                            <constraint firstItem="Ycb-HW-Lef" firstAttribute="leading" secondItem="HNA-Gl-RYG" secondAttribute="trailing" constant="8" id="o9D-UQ-qw9"/>
                         </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="1UR-Hp-mLi"/>
+                            </mask>
+                        </variation>
                     </view>
                     <connections>
-                        <outlet property="fontTableView" destination="yQV-DA-q3f" id="1Wv-XK-H4w"/>
-                        <outlet property="theTextField" destination="Hk5-bl-Tef" id="1hT-yz-XPO"/>
+                        <outlet property="textButton" destination="HNA-Gl-RYG" id="B1O-J3-xmV"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -89,4 +94,8 @@
             <point key="canvasLocation" x="256" y="338"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="pencil.png" width="30" height="30"/>
+        <image name="save.png" width="30" height="30"/>
+    </resources>
 </document>

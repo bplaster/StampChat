@@ -9,21 +9,26 @@
 #import "ViewController.h"
 #import <MessageUI/MessageUI.h>
 
-@interface ViewController () <MFMailComposeViewControllerDelegate>
+@interface ViewController () <MFMailComposeViewControllerDelegate, UITextFieldDelegate>
 
 // IBOutlets
-@property (strong, nonatomic) IBOutlet UITextField *theTextField;
 @property (strong, nonatomic) IBOutlet UITableView *fontTableView;
+@property (strong, nonatomic) IBOutlet UIButton *textButton;
+
+// Views
+@property (nonatomic, strong) MFMailComposeViewController *mailComposeViewController;
+@property (strong, nonatomic) UITextField *theTextField;
+@property (strong, nonatomic) UIImageView *theImageView;
 
 // Constants
 @property (strong, nonatomic) NSArray *fontArray;
+@property (strong, nonatomic) UIColor *textBackgroundColor;
 
 // Variables
 @property (assign, nonatomic) BOOL isAlreadyDragging;
 @property (assign, nonatomic) CGPoint oldTouchPoint;
-@property (strong, nonatomic) UIImageView *theImageView;
-@property (nonatomic, strong) MFMailComposeViewController *mailComposeViewController;
-
+@property (assign, nonatomic) BOOL isDrawing;
+@property (assign, nonatomic) NSUInteger currentFontIndex;
 
 @end
 
@@ -34,6 +39,11 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    // Setup theImageView
+    self.theImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"pic"]];
+    [self.theImageView setUserInteractionEnabled:YES];
+    self.isDrawing = NO;
+    
     // Initialize fonts for theTextField
     int fontSize = 20;
     UIFont *aGothic = [UIFont fontWithName:@"AppleGothic"               size:fontSize];
@@ -43,21 +53,54 @@
     UIFont *courier = [UIFont fontWithName:@"Courier"                   size:fontSize];
     UIFont *verdana = [UIFont fontWithName:@"Verdana-Bold"              size:fontSize];
     self.fontArray = [[NSArray alloc] initWithObjects:  aGothic,
-                                                        ulLight,
-                                                        mkrFelt,
-                                                        georgia,
-                                                        courier,
-                                                        verdana,
-                                                        nil];
-    self.theTextField.font = [self.fontArray objectAtIndex:0];
+                      ulLight,
+                      mkrFelt,
+                      georgia,
+                      courier,
+                      verdana,
+                      nil];
     
-    // Add pan gesture recognizer to theTextField
+    // Setup theTextField
+    CGRect textFrame = CGRectMake(0, 0, self.theImageView.frame.size.width, 30);
+    self.theTextField = [[UITextField alloc] initWithFrame:textFrame];
+    self.currentFontIndex = 0;
+    [self.theTextField setFont: [self.fontArray objectAtIndex:self.currentFontIndex]];
+    [self.theTextField setEnabled: NO];
+    [self.theTextField setHidden:YES];
+    [self.theTextField setDelegate:self];
+    [self.theTextField setBackgroundColor:[UIColor clearColor]];
+    self.textBackgroundColor = [[UIColor alloc] initWithWhite:0.1 alpha:0.5];
+    
+    // Add gesture recognizers
+    UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapGestureDidTap:)];
+    [self.theImageView addGestureRecognizer:tapGestureRecognizer];
     UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureDidDrag:)];
     [self.theTextField addGestureRecognizer:panGestureRecognizer];
-    
-    // Add image
-    self.theImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"pic"]];
+    UILongPressGestureRecognizer *longPressGestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressGestureDidHold:)];
+    [self.textButton addGestureRecognizer:longPressGestureRecognizer];
+
+    // Add subviews to views
     [self.view insertSubview:self.theImageView atIndex:0];
+    [self.theImageView addSubview:self.theTextField];
+
+}
+
+- (void) longPressGestureDidHold: (UILongPressGestureRecognizer *)sender {
+    switch (sender.state) {
+        case UIGestureRecognizerStateBegan:{
+            NSLog(@"Long press began!");
+
+            break;
+        }
+        case UIGestureRecognizerStateEnded:{
+            NSLog(@"Long press ended!");
+
+            break;
+        }
+            
+        default:
+            break;
+    }
 }
 
 - (UIImage *) burnText: (NSString *) text intoImage: (UIImage *) image{
@@ -65,22 +108,17 @@
     // Boilerplate for beginning an image context
     UIGraphicsBeginImageContextWithOptions(image.size, YES, 0.0);
     
-    //draw the image in the image context
+    // Draw the image in the image context
     CGRect aRectangle = CGRectMake(0,0, image.size.width, image.size.height);
     [image drawInRect:aRectangle];
     
-    //draw the text in the image context
-    NSDictionary *attributes = @{ NSFontAttributeName: self.theTextField.font,
-                                  NSForegroundColorAttributeName: [UIColor blackColor]};
-    CGSize size = [self.theTextField.text sizeWithAttributes:attributes];//get size of text
-    CGPoint center = self.theTextField.center;//get the center
-    CGRect rect = CGRectMake(center.x - size.width/2, center.y - size.height/2, size.width, size.height);//create the rect for the text
-    [text drawInRect:rect withAttributes:attributes];
+    // Draw the text in the image context
+    [self.theTextField drawViewHierarchyInRect:self.theTextField.frame afterScreenUpdates:NO];
     
-    //get the image to be returned before ending the image context
-    UIImage *theImage=UIGraphicsGetImageFromCurrentImageContext();
+    // Get the image to be returned before ending the image context
+    UIImage *theImage = UIGraphicsGetImageFromCurrentImageContext();
     
-    //boilerplate for ending an image context
+    // Boilerplate for ending an image context
     UIGraphicsEndImageContext();
     
     return theImage;
@@ -88,61 +126,118 @@
 
 - (void) panGestureDidDrag: (UIPanGestureRecognizer *) sender{
     
-    //get the touch point from the sender
-    CGPoint newTouchPoint = [sender locationInView:self.view];
-    
-    switch (sender.state) {
-        case UIGestureRecognizerStateBegan:{
-            //initialize oldTouchPoint for this drag
-            self.oldTouchPoint = newTouchPoint;
-            break;
+    if (![self.theTextField isFirstResponder]) {
+        // Get the touch point from the sender
+        CGPoint newTouchPoint = [sender locationInView:self.theImageView];
+        
+        switch (sender.state) {
+            case UIGestureRecognizerStateBegan:{
+                // Initialize oldTouchPoint for this drag
+                self.oldTouchPoint = newTouchPoint;
+                break;
+            }
+            case UIGestureRecognizerStateChanged:{
+                // Calculate the change in position since last call of panGestureDidDrag (for this drag)
+                float dx = newTouchPoint.x - self.oldTouchPoint.x;
+                float dy = newTouchPoint.y - self.oldTouchPoint.y;
+                float newX = self.theTextField.center.x;
+                float newY = self.theTextField.center.y;
+                
+                // Check for edge cases
+                int edgeX = roundf(self.theTextField.frame.origin.x + dx);
+                int edgeY = roundf(self.theTextField.frame.origin.y + dy);
+                
+                if (edgeX > 0) {
+                    CGFloat width =  [self.theTextField.text sizeWithAttributes:@{NSFontAttributeName:self.theTextField.font}].width;
+                    if (edgeX + width <= self.theImageView.frame.size.width) {
+                        newX += dx;
+                        [self.theTextField setBackgroundColor:[UIColor clearColor]];
+                    }
+                } else {
+                    [self.theTextField setBackgroundColor:self.textBackgroundColor];
+                    [self.theTextField setBounds:CGRectMake(0, 0, self.theImageView.frame.size.width, self.theTextField.frame.size.height)];
+                    newX += dx - edgeX;
+                }
+                
+                if (edgeY > 0 && edgeY + self.theTextField.frame.size.height < self.theImageView.frame.size.height) {
+                    newY += dy;
+                }
+                
+                // Move the center of the text field by the same amount that the finger moved
+                self.theTextField.center = CGPointMake(newX, newY);
+                
+                // Set oldTouchPoint
+                self.oldTouchPoint = newTouchPoint;
+                break;
+            }
+            default:
+                break;
         }
-        case UIGestureRecognizerStateChanged:{
-            //calculate the change in position since last call of panGestureDidDrag (for this drag)
-            float dx = newTouchPoint.x - self.oldTouchPoint.x;
-            float dy = newTouchPoint.y - self.oldTouchPoint.y;
-            
-            //move the center of the text field by the same amount that the finger moved
-            self.theTextField.center = CGPointMake(self.theTextField.center.x + dx, self.theTextField.center.y + dy);
-            
-            //set oldTouchPoint
-            self.oldTouchPoint = newTouchPoint;
-            break;
-        }
-        default:
-            break;
     }
 }
 
-#pragma mark - UITableViewDataSource
+- (void) tapGestureDidTap: (UITapGestureRecognizer *) sender{
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-    
-    // Boilerplate for table views
-    static NSString *CellIdentifier = @"Cell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (cell == nil) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+    if (sender.state == UIGestureRecognizerStateEnded)
+    {
+        // Get the touch point from the sender
+        CGPoint newTouchPoint = [sender locationInView:self.theImageView];
+        
+        // Handle drawing a point
+        if (self.isDrawing) {
+            
+        }
+        // Handle text creation
+        else {
+            newTouchPoint.x = self.theImageView.center.x;
+            if (self.theTextField.isHidden) {
+                [self.theTextField setCenter:newTouchPoint];
+                [self.theTextField setHidden:NO];
+                [self.theTextField setEnabled:YES];
+                [self.theTextField becomeFirstResponder];
+                [UIView animateWithDuration:0.06 animations:^{
+                    [self.theTextField setBackgroundColor:self.textBackgroundColor];
+                }];
+            } else if ([self.theTextField.text length] == 0) {
+                [UIView animateWithDuration:0.06 animations:^{
+                    [self.theTextField setBackgroundColor:[UIColor clearColor]];
+                }];
+                [self.theTextField setHidden:YES];
+                [self.theTextField setEnabled:NO];
+            }
+        }
     }
-    
-    // Add the appropriate font name to the cell
-    UIFont *font = [self.fontArray objectAtIndex:indexPath.row];
-    cell.textLabel.text = font.fontName;
-    cell.textLabel.font = font;
-    
-    return cell;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    return self.fontArray.count;
-}
-
-#pragma mark - UITableViewDelegate
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-    //change the font of the text field
-    self.theTextField.font = [self.fontArray objectAtIndex:indexPath.row];
-}
+//#pragma mark - UITableViewDataSource
+//
+//- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+//    
+//    // Boilerplate for table views
+//    static NSString *CellIdentifier = @"Cell";
+//    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+//    if (cell == nil) {
+//        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+//    }
+//    
+//    // Add the appropriate font name to the cell
+//    UIFont *font = [self.fontArray objectAtIndex:indexPath.row];
+//    cell.textLabel.text = font.fontName;
+//    cell.textLabel.font = font;
+//    
+//    return cell;
+//}
+//
+//- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+//    return self.fontArray.count;
+//}
+//
+//#pragma mark - UITableViewDelegate
+//
+//- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+//    // Change the font of the text field
+//    self.theTextField.font = [self.fontArray objectAtIndex:indexPath.row];
+//}
 
 #pragma mark - IBAction
 
@@ -168,10 +263,6 @@
     
 }
 
-- (IBAction)textFieldDidEndOnExit:(id)sender {
-    [sender resignFirstResponder];    //hide the keyboard
-}
-
 - (IBAction)emailButtonPressed:(id)sender {
     
     //initialize the mail compose view controller
@@ -187,6 +278,36 @@
     
     // Show mail compose view controller
     [self presentViewController:self.mailComposeViewController animated:YES completion:nil];
+}
+
+- (IBAction)drawButtonPressed:(id)sender {
+    if (self.isDrawing) {
+        self.isDrawing = NO;
+    } else {
+        self.isDrawing = YES;
+    }
+}
+
+- (IBAction)textButtonPressed:(id)sender {
+    self.currentFontIndex++;
+    self.currentFontIndex %= self.fontArray.count;
+    [self.theTextField setFont:[self.fontArray objectAtIndex:self.currentFontIndex]];
+}
+
+#pragma mark - UITextFieldDelegate
+
+- (BOOL) textFieldShouldReturn:(UITextField *)textField{
+    [self.theTextField resignFirstResponder];
+    return NO;
+}
+
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {    
+    NSMutableString *newString = [[NSMutableString alloc] initWithString:textField.text];
+    [newString replaceCharactersInRange:range withString:string];
+    
+    CGFloat width =  [newString sizeWithAttributes:@{NSFontAttributeName:textField.font}].width;
+    
+    return (textField.frame.origin.x + width < self.theImageView.frame.size.width);
 }
 
 #pragma mark - MFMailComposeViewControllerDelegate

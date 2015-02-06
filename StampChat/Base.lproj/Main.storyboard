@@ -17,9 +17,10 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hhk-h3-9Sh">
-                                <rect key="frame" x="188" y="562" width="63" height="30"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hhk-h3-9Sh">
+                                <rect key="frame" x="182" y="562" width="63" height="30"/>
                                 <state key="normal" title="Stamp It!">
+                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
@@ -35,26 +36,27 @@
                                     <action selector="saveButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Yxa-xa-Lop"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PwI-mS-eLo">
-                                <rect key="frame" x="356" y="562" width="55" height="30"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PwI-mS-eLo">
+                                <rect key="frame" x="355" y="562" width="55" height="30"/>
                                 <state key="normal" title="Email It!">
+                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
                                     <action selector="emailButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="JMN-3J-uN8"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ycb-HW-Lef">
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ycb-HW-Lef">
                                 <rect key="frame" x="554" y="28" width="30" height="30"/>
-                                <state key="normal" image="pencil.png">
+                                <state key="normal" image="pencil2.png">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
                                     <action selector="drawButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="nWC-68-plT"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HNA-Gl-RYG">
-                                <rect key="frame" x="516" y="23" width="30" height="40"/>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" misplaced="YES" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HNA-Gl-RYG">
+                                <rect key="frame" x="504" y="17" width="30" height="52"/>
                                 <fontDescription key="fontDescription" name="TimesNewRomanPS-BoldMT" family="Times New Roman" pointSize="36"/>
                                 <state key="normal" title="T">
                                     <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -77,7 +79,7 @@
                             <constraint firstItem="xXG-ux-4Tf" firstAttribute="top" secondItem="PwI-mS-eLo" secondAttribute="bottom" constant="8" id="Wad-FL-F8r"/>
                             <constraint firstItem="Ycb-HW-Lef" firstAttribute="top" secondItem="gi8-K6-jqA" secondAttribute="bottom" constant="8" id="aTb-Uz-mA9"/>
                             <constraint firstItem="xXG-ux-4Tf" firstAttribute="top" secondItem="hhk-h3-9Sh" secondAttribute="bottom" constant="8" id="led-KO-GLc"/>
-                            <constraint firstItem="Ycb-HW-Lef" firstAttribute="leading" secondItem="HNA-Gl-RYG" secondAttribute="trailing" constant="8" id="o9D-UQ-qw9"/>
+                            <constraint firstItem="Ycb-HW-Lef" firstAttribute="leading" secondItem="HNA-Gl-RYG" secondAttribute="trailing" constant="20" id="o9D-UQ-qw9"/>
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
@@ -86,6 +88,7 @@
                         </variation>
                     </view>
                     <connections>
+                        <outlet property="drawButton" destination="Ycb-HW-Lef" id="uKr-bV-YuW"/>
                         <outlet property="textButton" destination="HNA-Gl-RYG" id="B1O-J3-xmV"/>
                     </connections>
                 </viewController>
@@ -95,7 +98,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="pencil.png" width="30" height="30"/>
+        <image name="pencil2.png" width="40" height="40"/>
         <image name="save.png" width="30" height="30"/>
     </resources>
 </document>

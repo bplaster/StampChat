@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A5FAA9E1A85B2DC003758C4 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A5FAA9D1A85B2DC003758C4 /* AVFoundation.framework */; };
 		1A615B541A85858600E70E08 /* email.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A615B531A85858600E70E08 /* email.png */; };
 		1A615B561A8598F600E70E08 /* circle.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A615B551A8598F600E70E08 /* circle.png */; };
 		1A97F2B01A844D6B00E6ACF5 /* pic.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A97F2AF1A844D6B00E6ACF5 /* pic.png */; };
@@ -35,6 +36,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1A5FAA9D1A85B2DC003758C4 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		1A615B531A85858600E70E08 /* email.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = email.png; sourceTree = "<group>"; };
 		1A615B551A8598F600E70E08 /* circle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = circle.png; sourceTree = "<group>"; };
 		1A97F2AF1A844D6B00E6ACF5 /* pic.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pic.png; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A5FAA9E1A85B2DC003758C4 /* AVFoundation.framework in Frameworks */,
 				1A97F2B71A8462EA00E6ACF5 /* UIKit.framework in Frameworks */,
 				1A97F2B51A8462DE00E6ACF5 /* Foundation.framework in Frameworks */,
 				1A97F2B21A8462B500E6ACF5 /* CoreGraphics.framework in Frameworks */,
@@ -82,6 +85,7 @@
 		1A97F2B81A8462F100E6ACF5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1A5FAA9D1A85B2DC003758C4 /* AVFoundation.framework */,
 				1A97F2B61A8462EA00E6ACF5 /* UIKit.framework */,
 				1A97F2B41A8462DE00E6ACF5 /* Foundation.framework */,
 				1A97F2B11A8462B500E6ACF5 /* CoreGraphics.framework */,

@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import <MessageUI/MessageUI.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface ViewController () <MFMailComposeViewControllerDelegate, UITextFieldDelegate>
 
@@ -24,6 +25,8 @@
 @property (nonatomic, strong) MFMailComposeViewController *mailComposeViewController;
 @property (strong, nonatomic) UITextField *theTextField;
 @property (strong, nonatomic) UIImageView *theImageView;
+@property (strong, nonatomic) AVCaptureVideoPreviewLayer *captureLayer;
+@property (strong, nonatomic) UIView *captureView;
 
 // Constants
 @property (strong, nonatomic) NSArray *fontArray;
@@ -39,7 +42,8 @@
 @property (strong, nonatomic) NSTimer *textTimer;
 @property (assign, nonatomic) BOOL fontIncreasing;
 @property (strong, nonatomic) UIColor *drawColor;
-
+@property (strong, nonatomic) AVCaptureSession *captureSession;
+@property (strong, nonatomic) AVCaptureStillImageOutput *stillImageOutput;
 
 @end
 
@@ -51,14 +55,17 @@
     [super viewDidLoad];
     
     // Setup theImageView
-    self.theImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"pic"]];
-    [self.theImageView setFrame:self.view.frame];
+    self.theImageView = [[UIImageView alloc] initWithFrame:self.view.frame];
     [self.theImageView setUserInteractionEnabled:YES];
     self.isDrawing = NO;
     self.diameter = 7.0;
     self.drawColor = [[UIColor alloc] initWithRed:0 green:0 blue:0 alpha:1];
     CALayer *dbLayer = [self.drawButton layer];
     [dbLayer setCornerRadius:4];
+    
+    // Setup the captureView
+    self.captureView = [[UIView alloc] initWithFrame:self.theImageView.frame];
+    [self setupCaptureSession];
     
     // Initialize fonts for theTextField
     int fontSize = 20;
@@ -99,13 +106,12 @@
     [self.textButton addGestureRecognizer:longPressGestureRecognizer];
 
     // Add subviews to views
-    [self.view insertSubview:self.theImageView atIndex:0];
+    [self.view insertSubview:self.captureView atIndex:0];
+    [self.view insertSubview:self.theImageView aboveSubview:self.captureView];
     [self.theImageView addSubview:self.theTextField];
     
     // Hide editing view
     [self hideEditingLayer:YES];
-    self.isCapturing = YES;
-
 }
 
 - (void) longPressGestureDidHold: (UILongPressGestureRecognizer *)sender {
@@ -441,14 +447,49 @@
     newFont = [UIFont fontWithName:newFont.fontName size:self.theTextField.font.pointSize];
     [self.theTextField setFont:newFont];
 }
+
+// Source: https://developer.apple.com/library/ios/documentation/AudioVideo/Conceptual/AVFoundationPG/Articles/04_MediaCapture.html#//apple_ref/doc/uid/TP40010188-CH5-SW2
 - (IBAction)captureButtonPressed:(id)sender {
+    
+    AVCaptureConnection *videoConnection = nil;
+    for (AVCaptureConnection *connection in self.stillImageOutput.connections) {
+        for (AVCaptureInputPort *port in [connection inputPorts]) {
+            if ([[port mediaType] isEqual:AVMediaTypeVideo] ) {
+                videoConnection = connection;
+                break;
+            }
+        }
+        if (videoConnection) { break; }
+    }
+    
+    [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:videoConnection completionHandler:
+     ^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
+         
+         NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
+         UIImage *image = [[UIImage alloc] initWithData:imageData];
+         [self.theImageView setImage:image];
+
+     }];
+
+    // Stop the captureSession
+    [self.captureSession stopRunning];
     self.isCapturing = NO;
+    
+    // Setup Edit mode
     [self hideEditingLayer:NO];
     [self.captureButton setEnabled:NO];
     [self.captureButton setHidden:YES];
 }
 - (IBAction)cancelPhotoPressed:(id)sender {
+    [self.theImageView setImage:nil];
+    
+    // Start the captureSession
+    [self.captureSession startRunning];
     self.isCapturing = YES;
+    
+    // Hide editing
+    self.isDrawing = NO;
+    [self.theTextField setText:@""];
     [self hideEditingLayer:YES];
     [self.captureButton setEnabled:YES];
     [self.captureButton setHidden:NO];
@@ -481,6 +522,51 @@
     
     // Dismiss the mail compose view controller
     [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+#pragma mark - AVFoundationMethods
+
+-(void) setupCaptureSession {
+    
+    // Setup the Capture Session
+    NSError *error = nil;
+    self.captureSession = [AVCaptureSession new];
+    self.captureSession.sessionPreset = AVCaptureSessionPresetMedium;
+    AVCaptureDevice *captureDevice = [self cameraWithPosition:AVCaptureDevicePositionFront];
+    AVCaptureDeviceInput *deviceInput = [AVCaptureDeviceInput deviceInputWithDevice:captureDevice error:&error];
+//    AVCaptureVideoDataOutput *captureOutput = [AVCaptureVideoDataOutput new];
+    
+    [self.captureSession addInput:deviceInput];
+//    [self.captureSession addOutput:captureOutput];
+    
+    // Add still image capture
+    self.stillImageOutput = [AVCaptureStillImageOutput new];
+    NSDictionary *outputSettings = @{ AVVideoCodecKey : AVVideoCodecJPEG};
+    [self.stillImageOutput setOutputSettings:outputSettings];
+    if ([self.captureSession canAddOutput:self.stillImageOutput]) {
+        [self.captureSession addOutput:self.stillImageOutput];
+    }
+    
+    // Set image layer as camera view
+    self.captureLayer = [AVCaptureVideoPreviewLayer layerWithSession:self.captureSession];
+    [self.captureLayer setFrame:self.captureView.frame];
+    [self.captureView.layer addSublayer:self.captureLayer];
+    
+    // Start running
+    [self.captureSession startRunning];
+    self.isCapturing = YES;
+}
+
+// Find a camera with the specified AVCaptureDevicePosition, returning nil if one is not found
+// Source: http://stackoverflow.com/questions/20864372/switch-cameras-with-avcapturesession
+- (AVCaptureDevice *) cameraWithPosition:(AVCaptureDevicePosition) position
+{
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    for (AVCaptureDevice *device in devices)
+    {
+        if ([device position] == position) return device;
+    }
+    return nil;
 }
 
 #pragma mark - CleanUp

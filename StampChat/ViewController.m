@@ -20,6 +20,8 @@
 @property (strong, nonatomic) IBOutlet UIButton *saveButton;
 @property (strong, nonatomic) IBOutlet UIButton *captureButton;
 @property (strong, nonatomic) IBOutlet UIButton *cancelButton;
+@property (strong, nonatomic) IBOutlet UIButton *flipButton;
+@property (strong, nonatomic) IBOutlet UIView *colorView;
 
 // Views
 @property (nonatomic, strong) MFMailComposeViewController *mailComposeViewController;
@@ -44,6 +46,8 @@
 @property (strong, nonatomic) UIColor *drawColor;
 @property (strong, nonatomic) AVCaptureSession *captureSession;
 @property (strong, nonatomic) AVCaptureStillImageOutput *stillImageOutput;
+@property (strong, nonatomic) AVCaptureDeviceInput *currentDeviceInput;
+@property (assign, nonatomic) BOOL isFrontFacing;
 
 @end
 
@@ -62,6 +66,7 @@
     self.drawColor = [[UIColor alloc] initWithRed:0 green:0 blue:0 alpha:1];
     CALayer *dbLayer = [self.drawButton layer];
     [dbLayer setCornerRadius:4];
+    
     
     // Setup the captureView
     self.captureView = [[UIView alloc] initWithFrame:self.theImageView.frame];
@@ -327,6 +332,10 @@
     [self.emailButton setHidden:hide];
     [self.drawButton setHidden:hide];
     [self.cancelButton setHidden:hide];
+    if (self.isDrawing) {
+        [self.colorView setHidden:hide];
+        self.colorView.userInteractionEnabled = !hide;
+    }
     
     // Disable views
     [self.saveButton setEnabled:!hide];
@@ -401,6 +410,7 @@
 
 - (IBAction)saveButtonPressed:(id)sender {
     
+    [self stampImage];
     // Save the image to the photo roll. note that the middle two parameters could have been left nil if we didn't want to do anything particular upon the save completing.
     UIImageWriteToSavedPhotosAlbum(self.theImageView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
     
@@ -408,33 +418,48 @@
 
 - (void) image: (UIImage *) image didFinishSavingWithError: (NSError *) error contextInfo: (void *) contextInfo{
     // This method is being called once saving to the photoroll is complete.
-    NSLog(@"photo saved!");
-    
+    NSString *result;
+    if (error) {
+        result = @"There was an error saving.";
+    } else {
+        result = @"Photo saved!";
+    }
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Status" message:result delegate:self cancelButtonTitle:@"Done" otherButtonTitles: nil];
+    [alertView show];
+
 }
 
 - (IBAction)emailButtonPressed:(id)sender {
     
     // Initialize the mail compose view controller
     self.mailComposeViewController = [[MFMailComposeViewController alloc] init];
-    self.mailComposeViewController.mailComposeDelegate = self;//this requires that this viewController declares that it adheres to <MFMailComposeViewControllerDelegate>, and implements a couple of delegate methods which we did not implement in class
-    
-    // Set a subject for the email
-    [self.mailComposeViewController setSubject:@"Check out my snapsterpiece"];
-    
-    // Get the image data and add it as an attachment to the email
-    NSData *imageData = UIImagePNGRepresentation(self.theImageView.image);
-    [self.mailComposeViewController addAttachmentData:imageData mimeType:@"image/png" fileName:@"snapsterpiece"];
-    
-    // Show mail compose view controller
-    [self presentViewController:self.mailComposeViewController animated:YES completion:nil];
+    if ([MFMailComposeViewController canSendMail]) {
+        self.mailComposeViewController.mailComposeDelegate = self;//this requires that this viewController declares that it adheres to <MFMailComposeViewControllerDelegate>, and implements a couple of delegate methods which we did not implement in class
+        
+        // Set a subject for the email
+        [self.mailComposeViewController setSubject:@"Check out my snapsterpiece"];
+        
+        // Get the image data and add it as an attachment to the email
+        NSData *imageData = UIImagePNGRepresentation(self.theImageView.image);
+        [self.mailComposeViewController addAttachmentData:imageData mimeType:@"image/png" fileName:@"snapsterpiece"];
+        
+        // Show mail compose view controller
+        [self presentViewController:self.mailComposeViewController animated:YES completion:nil];
+    } else {
+        NSLog(@"Can't handle mail.");
+    }
 }
 
 - (IBAction)drawButtonPressed:(id)sender {
     if (self.isDrawing) {
         [self.drawButton setBackgroundColor:[UIColor clearColor]];
+        [self.colorView setHidden:YES];
+        self.colorView.userInteractionEnabled = NO;
     } else {
         [self.theTextField resignFirstResponder];
         [self.drawButton setBackgroundColor:self.drawColor];
+        [self.colorView setHidden:NO];
+        self.colorView.userInteractionEnabled = YES;
     }
     self.isDrawing = !self.isDrawing;
     [self updateTextVisibility];
@@ -456,6 +481,9 @@
         for (AVCaptureInputPort *port in [connection inputPorts]) {
             if ([[port mediaType] isEqual:AVMediaTypeVideo] ) {
                 videoConnection = connection;
+                if (self.isFrontFacing) {
+                    [videoConnection setVideoMirrored:YES];
+                }
                 break;
             }
         }
@@ -465,10 +493,12 @@
     [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:videoConnection completionHandler:
      ^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
          
-         NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
-         UIImage *image = [[UIImage alloc] initWithData:imageData];
-         [self.theImageView setImage:image];
-
+         if (imageSampleBuffer) {
+             NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
+             
+             UIImage *image = [[UIImage alloc] initWithData:imageData];
+             [self.theImageView setImage:image];
+         }
      }];
 
     // Stop the captureSession
@@ -479,9 +509,10 @@
     [self hideEditingLayer:NO];
     [self.captureButton setEnabled:NO];
     [self.captureButton setHidden:YES];
+    [self.flipButton setEnabled:NO];
+    [self.flipButton setHidden:YES];
 }
 - (IBAction)cancelPhotoPressed:(id)sender {
-    [self.theImageView setImage:nil];
     
     // Start the captureSession
     [self.captureSession startRunning];
@@ -491,9 +522,42 @@
     self.isDrawing = NO;
     [self.theTextField setText:@""];
     [self hideEditingLayer:YES];
+    [self.theImageView setImage:nil];
     [self.captureButton setEnabled:YES];
     [self.captureButton setHidden:NO];
+    [self.flipButton setEnabled:YES];
+    [self.flipButton setHidden:NO];
+    [self.colorView setHidden:YES];
+    self.colorView.userInteractionEnabled = NO;
+    [self.drawButton setBackgroundColor:[UIColor clearColor]];
 }
+- (IBAction)flipButtonPressed:(id)sender {
+    NSError *error = nil;
+
+    AVCaptureDevice *captureDevice;
+    
+    if (self.isFrontFacing) {
+        captureDevice = [self cameraWithPosition:AVCaptureDevicePositionBack];
+    } else {
+        captureDevice = [self cameraWithPosition:AVCaptureDevicePositionFront];
+
+    }
+    AVCaptureDeviceInput *deviceInput = [AVCaptureDeviceInput deviceInputWithDevice:captureDevice error:&error];
+    
+    [self.captureSession beginConfiguration];
+    [self.captureSession removeInput:self.currentDeviceInput];
+    [self.captureSession addInput:deviceInput];
+    [self.captureSession commitConfiguration];
+    
+    self.currentDeviceInput = deviceInput;
+    self.isFrontFacing = !self.isFrontFacing;
+}
+- (IBAction)colorButtonPressed:(id)sender {
+    UIButton *button = sender;
+    self.drawColor = button.backgroundColor;
+    [self.drawButton setBackgroundColor:self.drawColor];
+}
+
 
 #pragma mark - UITextFieldDelegate
 
@@ -532,12 +596,10 @@
     NSError *error = nil;
     self.captureSession = [AVCaptureSession new];
     self.captureSession.sessionPreset = AVCaptureSessionPresetMedium;
-    AVCaptureDevice *captureDevice = [self cameraWithPosition:AVCaptureDevicePositionFront];
-    AVCaptureDeviceInput *deviceInput = [AVCaptureDeviceInput deviceInputWithDevice:captureDevice error:&error];
-//    AVCaptureVideoDataOutput *captureOutput = [AVCaptureVideoDataOutput new];
-    
-    [self.captureSession addInput:deviceInput];
-//    [self.captureSession addOutput:captureOutput];
+    AVCaptureDevice *frontCaptureDevice = [self cameraWithPosition:AVCaptureDevicePositionFront];
+    self.currentDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:frontCaptureDevice error:&error];
+    [self.captureSession addInput:self.currentDeviceInput];
+    self.isFrontFacing = YES;
     
     // Add still image capture
     self.stillImageOutput = [AVCaptureStillImageOutput new];

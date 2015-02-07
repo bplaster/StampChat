@@ -8,13 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		1A5FAA9E1A85B2DC003758C4 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A5FAA9D1A85B2DC003758C4 /* AVFoundation.framework */; };
+		1A5FAAA21A85CDEE003758C4 /* flip.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A5FAAA11A85CDEE003758C4 /* flip.png */; };
+		1A5FAAA41A85DF63003758C4 /* save.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A5FAAA31A85DF63003758C4 /* save.png */; };
 		1A615B541A85858600E70E08 /* email.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A615B531A85858600E70E08 /* email.png */; };
 		1A615B561A8598F600E70E08 /* circle.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A615B551A8598F600E70E08 /* circle.png */; };
 		1A97F2B01A844D6B00E6ACF5 /* pic.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A97F2AF1A844D6B00E6ACF5 /* pic.png */; };
 		1A97F2B21A8462B500E6ACF5 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A97F2B11A8462B500E6ACF5 /* CoreGraphics.framework */; };
 		1A97F2B51A8462DE00E6ACF5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A97F2B41A8462DE00E6ACF5 /* Foundation.framework */; };
 		1A97F2B71A8462EA00E6ACF5 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A97F2B61A8462EA00E6ACF5 /* UIKit.framework */; };
-		1A97F2BD1A846E4900E6ACF5 /* save.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A97F2BC1A846E4900E6ACF5 /* save.png */; };
 		1A97F2C11A8510FC00E6ACF5 /* pencil2.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A97F2C01A8510FC00E6ACF5 /* pencil2.png */; };
 		1ABF548C1A844B99005BB0D5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABF548B1A844B99005BB0D5 /* main.m */; };
 		1ABF548F1A844B99005BB0D5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABF548E1A844B99005BB0D5 /* AppDelegate.m */; };
@@ -37,13 +38,14 @@
 
 /* Begin PBXFileReference section */
 		1A5FAA9D1A85B2DC003758C4 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		1A5FAAA11A85CDEE003758C4 /* flip.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = flip.png; sourceTree = "<group>"; };
+		1A5FAAA31A85DF63003758C4 /* save.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = save.png; sourceTree = "<group>"; };
 		1A615B531A85858600E70E08 /* email.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = email.png; sourceTree = "<group>"; };
 		1A615B551A8598F600E70E08 /* circle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = circle.png; sourceTree = "<group>"; };
 		1A97F2AF1A844D6B00E6ACF5 /* pic.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pic.png; sourceTree = "<group>"; };
 		1A97F2B11A8462B500E6ACF5 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		1A97F2B41A8462DE00E6ACF5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1A97F2B61A8462EA00E6ACF5 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		1A97F2BC1A846E4900E6ACF5 /* save.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = save.png; sourceTree = "<group>"; };
 		1A97F2C01A8510FC00E6ACF5 /* pencil2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pencil2.png; sourceTree = "<group>"; };
 		1ABF54861A844B99005BB0D5 /* StampChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StampChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1ABF548A1A844B99005BB0D5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -96,9 +98,10 @@
 		1A97F2BB1A846DA500E6ACF5 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				1A5FAAA11A85CDEE003758C4 /* flip.png */,
 				1A615B551A8598F600E70E08 /* circle.png */,
 				1A615B531A85858600E70E08 /* email.png */,
-				1A97F2BC1A846E4900E6ACF5 /* save.png */,
+				1A5FAAA31A85DF63003758C4 /* save.png */,
 				1A97F2C01A8510FC00E6ACF5 /* pencil2.png */,
 				1ABF54961A844B99005BB0D5 /* Images.xcassets */,
 				1A97F2AF1A844D6B00E6ACF5 /* pic.png */,
@@ -248,7 +251,8 @@
 			files = (
 				1ABF54951A844B99005BB0D5 /* Main.storyboard in Resources */,
 				1A97F2C11A8510FC00E6ACF5 /* pencil2.png in Resources */,
-				1A97F2BD1A846E4900E6ACF5 /* save.png in Resources */,
+				1A5FAAA41A85DF63003758C4 /* save.png in Resources */,
+				1A5FAAA21A85CDEE003758C4 /* flip.png in Resources */,
 				1ABF549A1A844B99005BB0D5 /* LaunchScreen.xib in Resources */,
 				1A97F2B01A844D6B00E6ACF5 /* pic.png in Resources */,
 				1ABF54971A844B99005BB0D5 /* Images.xcassets in Resources */,

@@ -15,6 +15,10 @@
 @property (strong, nonatomic) IBOutlet UITableView *fontTableView;
 @property (strong, nonatomic) IBOutlet UIButton *textButton;
 @property (strong, nonatomic) IBOutlet UIButton *drawButton;
+@property (strong, nonatomic) IBOutlet UIButton *emailButton;
+@property (strong, nonatomic) IBOutlet UIButton *saveButton;
+@property (strong, nonatomic) IBOutlet UIButton *captureButton;
+@property (strong, nonatomic) IBOutlet UIButton *cancelButton;
 
 // Views
 @property (nonatomic, strong) MFMailComposeViewController *mailComposeViewController;
@@ -30,6 +34,7 @@
 @property (assign, nonatomic) BOOL isContinuousStroke;
 @property (assign, nonatomic) CGPoint oldTouchPoint;
 @property (assign, nonatomic) BOOL isDrawing;
+@property (assign, nonatomic) BOOL isCapturing;
 @property (assign, nonatomic) NSUInteger currentFontIndex;
 @property (strong, nonatomic) NSTimer *textTimer;
 @property (assign, nonatomic) BOOL fontIncreasing;
@@ -96,19 +101,21 @@
     // Add subviews to views
     [self.view insertSubview:self.theImageView atIndex:0];
     [self.theImageView addSubview:self.theTextField];
+    
+    // Hide editing view
+    [self hideEditingLayer:YES];
+    self.isCapturing = YES;
 
 }
 
 - (void) longPressGestureDidHold: (UILongPressGestureRecognizer *)sender {
     switch (sender.state) {
         case UIGestureRecognizerStateBegan:{
-            NSLog(@"Long press began!");
             [self.textTimer invalidate];
             self.textTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(cycleTextSize) userInfo:nil repeats:YES];
             break;
         }
         case UIGestureRecognizerStateEnded:{
-            NSLog(@"Long press ended!");
             [self.textTimer invalidate];
             break;
         }
@@ -118,6 +125,7 @@
     }
 }
 
+// Handles increase/decrease in text size based on long press gesture
 - (void) cycleTextSize {
     CGFloat newSize = self.theTextField.font.pointSize;
     CGFloat sizeChange = 3.0;
@@ -145,6 +153,7 @@
     [self.theTextField setBounds:CGRectMake(0, 0, self.theImageView.frame.size.width, self.theTextField.frame.size.height + sizeChange)];
 }
 
+// Burns current text into image
 - (UIImage *) burnText: (NSString *) text intoImage: (UIImage *) image{
     
     // Boilerplate for beginning an image context
@@ -167,7 +176,6 @@
 }
 
 // Draws line between two points
-
 - (void) drawBetweenPoint: (CGPoint) startPoint andPoint: (CGPoint) endPoint {
     
     UIGraphicsBeginImageContext(self.theImageView.frame.size);
@@ -192,8 +200,7 @@
 }
 
 - (void) panGestureDidDrag: (UIPanGestureRecognizer *) sender{
-    
-    if (![self.theTextField isFirstResponder]) {
+    if (![self.theTextField isFirstResponder] && !self.isCapturing) {
         // Get the touch point from the sender
         CGPoint newTouchPoint = [sender locationInView:self.theImageView];
 
@@ -204,6 +211,7 @@
                 
                 if (self.isDrawing) {
                     self.isContinuousStroke = NO;
+                    [self hideEditingLayer:YES];
                 }
                 break;
             }
@@ -214,6 +222,7 @@
                     if (!CGPointEqualToPoint(self.oldTouchPoint, newTouchPoint)) {
                         [self drawBetweenPoint:self.oldTouchPoint andPoint:newTouchPoint];
                     }
+                    // TODO: Need to fix this, it's clearly not working
                 } else if(sender.view.tag == self.theTextField.tag){
                     // Calculate the change in position since last call of panGestureDidDrag (for this drag)
                     float dx = newTouchPoint.x - self.oldTouchPoint.x;
@@ -225,7 +234,7 @@
                     int edgeX = roundf(self.theTextField.frame.origin.x + dx);
                     int edgeY = roundf(self.theTextField.frame.origin.y + dy);
                     
-                    if (edgeX > 0) {
+                    if (edgeX > 5) {
                         CGFloat width =  [self.theTextField.text sizeWithAttributes:@{NSFontAttributeName:self.theTextField.font}].width;
                         if (edgeX + width <= self.theImageView.frame.size.width) {
                             newX += dx;
@@ -252,6 +261,7 @@
             case UIGestureRecognizerStateEnded:{
                 if (self.isDrawing) {
                     [self drawBetweenPoint:self.oldTouchPoint andPoint:newTouchPoint];
+                    [self hideEditingLayer:NO];
                 }
                 break;
             }
@@ -262,45 +272,83 @@
 }
 
 - (void) tapGestureDidTap: (UITapGestureRecognizer *) sender{
-
-    switch (sender.state) {
-        case UIGestureRecognizerStateEnded:{
-            // Get the touch point from the sender
-            CGPoint newTouchPoint = [sender locationInView:self.theImageView];
-            
-            // Handle drawing a point
-            if (self.isDrawing) {
-                // Draw a point
-                [self drawBetweenPoint:newTouchPoint andPoint:newTouchPoint];
-            }
-            // Handle text creation
-            else {
-                newTouchPoint.x = self.theImageView.center.x;
-                if (self.theTextField.isHidden) {
-                    [self.theTextField setCenter:newTouchPoint];
-                    [self.theTextField setHidden:NO];
-                    [self.theTextField setEnabled:YES];
-                    [self.theTextField becomeFirstResponder];
-                    [self.textButton setHidden:NO];
-                    [self.textButton setEnabled:YES];
-                    [UIView animateWithDuration:0.06 animations:^{
-                        [self.theTextField setBackgroundColor:self.textBackgroundColor];
-                    }];
-                } else if ([self.theTextField.text length] == 0) {
-                    [UIView animateWithDuration:0.06 animations:^{
-                        [self.theTextField setBackgroundColor:[UIColor clearColor]];
-                    }];
-                    [self.theTextField setHidden:YES];
-                    [self.theTextField setEnabled:NO];
-                    [self.textButton setHidden:YES];
-                    [self.textButton setEnabled:NO];
+    if (!self.isCapturing) {
+        switch (sender.state) {
+            case UIGestureRecognizerStateEnded:{
+                // Get the touch point from the sender
+                CGPoint newTouchPoint = [sender locationInView:self.theImageView];
+                
+                // Handle drawing a point
+                if (self.isDrawing) {
+                    // Draw a point
+                    [self drawBetweenPoint:newTouchPoint andPoint:newTouchPoint];
                 }
+                // Handle text creation
+                else {
+                    newTouchPoint.x = self.theImageView.center.x;
+                    if (self.theTextField.isHidden) {
+                        [self.theTextField setCenter:newTouchPoint];
+                        [self.theTextField setHidden:NO];
+                        [self.theTextField setEnabled:YES];
+                        [self.theTextField becomeFirstResponder];
+                        [self.textButton setHidden:NO];
+                        [self.textButton setEnabled:YES];
+                        [UIView animateWithDuration:0.06 animations:^{
+                            [self.theTextField setBackgroundColor:self.textBackgroundColor];
+                        }];
+                    } else if ([self.theTextField.text length] == 0) {
+                        [UIView animateWithDuration:0.06 animations:^{
+                            [self.theTextField setBackgroundColor:[UIColor clearColor]];
+                        }];
+                        [self updateTextVisibility];
+                    } else {
+                        [self.theTextField resignFirstResponder];
+                    }
+                }
+                break;
             }
-            break;
+            default:
+                break;
         }
-            
-        default:
-            break;
+    }
+}
+
+// Handles hiding all the editing elements (obviously it would be better to just put this in a new layer)
+-(void) hideEditingLayer: (BOOL)hide {
+
+    // Hide views
+    [self.saveButton setHidden:hide];
+    [self.emailButton setHidden:hide];
+    [self.drawButton setHidden:hide];
+    [self.cancelButton setHidden:hide];
+    
+    // Disable views
+    [self.saveButton setEnabled:!hide];
+    [self.emailButton setEnabled:!hide];
+    [self.drawButton setEnabled:!hide];
+    [self.cancelButton setEnabled:!hide];
+    
+    [self updateTextVisibility];
+}
+
+// Handles enabling text layer when not necessary
+-(void) updateTextVisibility {
+    if (self.theTextField.text.length > 0 && !self.isCapturing) {
+        if (self.isDrawing) {
+            [self.textButton setEnabled:NO];
+            [self.textButton setHidden:YES];
+            [self.theTextField setEnabled:NO];
+        } else {
+            [self.textButton setEnabled:YES];
+            [self.textButton setHidden:NO];
+            [self.theTextField setEnabled:YES];
+        }
+        [self.theTextField setHidden:NO];
+    } else {
+        [self.textButton setEnabled:NO];
+        [self.textButton setHidden:YES];
+        [self.theTextField setEnabled:NO];
+        [self.theTextField setHidden:YES];
     }
 }
 
@@ -334,16 +382,16 @@
 //    self.theTextField.font = [self.fontArray objectAtIndex:indexPath.row];
 //}
 
-#pragma mark - IBAction
-
-- (IBAction)stampButtonPressed:(id)sender {
-    
+// Stamps layers into image.
+- (void)stampImage {
     // Get the new image, with the latest text burned into the latest position
     UIImage *image = [self burnText:self.theTextField.text intoImage:self.theImageView.image];
     
     // Show the new image
     self.theImageView.image = image;
 }
+
+#pragma mark - IBAction
 
 - (IBAction)saveButtonPressed:(id)sender {
     
@@ -383,6 +431,7 @@
         [self.drawButton setBackgroundColor:self.drawColor];
     }
     self.isDrawing = !self.isDrawing;
+    [self updateTextVisibility];
 }
 
 - (IBAction)textButtonPressed:(id)sender {
@@ -392,11 +441,24 @@
     newFont = [UIFont fontWithName:newFont.fontName size:self.theTextField.font.pointSize];
     [self.theTextField setFont:newFont];
 }
+- (IBAction)captureButtonPressed:(id)sender {
+    self.isCapturing = NO;
+    [self hideEditingLayer:NO];
+    [self.captureButton setEnabled:NO];
+    [self.captureButton setHidden:YES];
+}
+- (IBAction)cancelPhotoPressed:(id)sender {
+    self.isCapturing = YES;
+    [self hideEditingLayer:YES];
+    [self.captureButton setEnabled:YES];
+    [self.captureButton setHidden:NO];
+}
 
 #pragma mark - UITextFieldDelegate
 
 - (BOOL) textFieldShouldReturn:(UITextField *)textField{
     [self.theTextField resignFirstResponder];
+    [self updateTextVisibility];
     return NO;
 }
 

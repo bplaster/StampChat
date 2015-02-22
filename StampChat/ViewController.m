@@ -9,8 +9,10 @@
 #import "ViewController.h"
 #import <MessageUI/MessageUI.h>
 #import <AVFoundation/AVFoundation.h>
+#import <CoreLocation/CoreLocation.h>
+#import <CoreMotion/CoreMotion.h>
 
-@interface ViewController () <MFMailComposeViewControllerDelegate, UITextFieldDelegate>
+@interface ViewController () <UIGestureRecognizerDelegate, MFMailComposeViewControllerDelegate, UITextFieldDelegate, CLLocationManagerDelegate>
 
 // IBOutlets
 @property (strong, nonatomic) IBOutlet UITableView *fontTableView;
@@ -24,30 +26,36 @@
 @property (strong, nonatomic) IBOutlet UIView *colorView;
 
 // Views
-@property (nonatomic, strong) MFMailComposeViewController *mailComposeViewController;
+@property (strong, nonatomic) MFMailComposeViewController *mailComposeViewController;
 @property (strong, nonatomic) UITextField *theTextField;
 @property (strong, nonatomic) UIImageView *theImageView;
 @property (strong, nonatomic) AVCaptureVideoPreviewLayer *captureLayer;
 @property (strong, nonatomic) UIView *captureView;
+@property (strong, nonatomic) UIView *filterView;
+@property (strong, nonatomic) UILabel *locationLabel;
+@property (strong, nonatomic) UILabel *accelerationLabel;
 
 // Constants
+@property (assign, nonatomic) CGFloat diameter;
 @property (strong, nonatomic) NSArray *fontArray;
 @property (strong, nonatomic) UIColor *textBackgroundColor;
-@property (assign, nonatomic) CGFloat diameter;
+@property (strong, nonatomic) CLLocationManager *locationManager;
+@property (strong, nonatomic) CMMotionManager *motionManager;
 
 // Variables
 @property (assign, nonatomic) BOOL isContinuousStroke;
-@property (assign, nonatomic) CGPoint oldTouchPoint;
 @property (assign, nonatomic) BOOL isDrawing;
 @property (assign, nonatomic) BOOL isCapturing;
+@property (assign, nonatomic) BOOL isFontIncreasing;
+@property (assign, nonatomic) BOOL isFrontFacing;
+@property (assign, nonatomic) BOOL isFiltering;
+@property (assign, nonatomic) CGPoint oldTouchPoint;
 @property (assign, nonatomic) NSUInteger currentFontIndex;
 @property (strong, nonatomic) NSTimer *textTimer;
-@property (assign, nonatomic) BOOL fontIncreasing;
 @property (strong, nonatomic) UIColor *drawColor;
 @property (strong, nonatomic) AVCaptureSession *captureSession;
 @property (strong, nonatomic) AVCaptureStillImageOutput *stillImageOutput;
 @property (strong, nonatomic) AVCaptureDeviceInput *currentDeviceInput;
-@property (assign, nonatomic) BOOL isFrontFacing;
 
 @end
 
@@ -57,7 +65,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     // Setup theImageView
     self.theImageView = [[UIImageView alloc] initWithFrame:self.view.frame];
     [self.theImageView setUserInteractionEnabled:YES];
@@ -67,10 +75,13 @@
     CALayer *dbLayer = [self.drawButton layer];
     [dbLayer setCornerRadius:4];
     
-    
     // Setup the captureView
     self.captureView = [[UIView alloc] initWithFrame:self.theImageView.frame];
-    [self setupCaptureSession];
+    //[self setupCaptureSession];
+    
+    // Setup the filterView
+    self.filterView = [[UIView alloc] initWithFrame:self.theImageView.frame];
+    [self setupFilterView];
     
     // Initialize fonts for theTextField
     int fontSize = 20;
@@ -99,16 +110,21 @@
     [self.theTextField setBackgroundColor:[UIColor clearColor]];
     [self.theTextField setTextColor:[UIColor whiteColor]];
     self.textBackgroundColor = [[UIColor alloc] initWithWhite:0.1 alpha:0.5];
-    self.fontIncreasing = YES;
+    self.isFontIncreasing = YES;
     
     // Add gesture recognizers
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapGestureDidTap:)];
-    [self.theImageView addGestureRecognizer:tapGestureRecognizer];
     UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureDidDrag:)];
-    [self.theTextField addGestureRecognizer:panGestureRecognizer];
-    [self.theImageView addGestureRecognizer:panGestureRecognizer];
     UILongPressGestureRecognizer *longPressGestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressGestureDidHold:)];
-    [self.textButton addGestureRecognizer:longPressGestureRecognizer];
+    UISwipeGestureRecognizer *swipeGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeGestureDidSwipe:)];
+    [panGestureRecognizer setDelegate:self];
+    
+    [self.theTextField  addGestureRecognizer:panGestureRecognizer];
+    [self.theImageView  addGestureRecognizer:tapGestureRecognizer];
+    [self.theImageView  addGestureRecognizer:panGestureRecognizer];
+    [self.theImageView  addGestureRecognizer:swipeGestureRecognizer];
+ 
+    [self.textButton    addGestureRecognizer:longPressGestureRecognizer];
 
     // Add subviews to views
     [self.view insertSubview:self.captureView atIndex:0];
@@ -117,6 +133,55 @@
     
     // Hide editing view
     [self hideEditingLayer:YES];
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer{
+    return YES;
+}
+
+- (void) swipeGestureDidSwipe: (UISwipeGestureRecognizer *)sender {
+    if (!self.isCapturing && !self.isDrawing) {
+        float duration = 0.3;
+        switch (sender.direction) {
+            case UISwipeGestureRecognizerDirectionRight:{
+                NSLog(@"swiped right");
+                
+                if (self.isFiltering) {
+                    self.isFiltering = NO;
+                    [UIView animateWithDuration:duration animations:^{
+                        [self.filterView setCenter:CGPointMake(self.theImageView.center.x + self.theImageView.bounds.size.width, self.theImageView.center.y)];
+                    }];
+                } else {
+                    self.isFiltering = YES;
+                    [self.filterView setCenter:CGPointMake(self.theImageView.center.x - self.theImageView.bounds.size.width, self.theImageView.center.y)];
+                    [UIView animateWithDuration:duration animations:^{
+                        [self.filterView setCenter:self.theImageView.center];
+                    }];
+                }
+                break;
+            }
+            case UISwipeGestureRecognizerDirectionLeft:{
+                
+                NSLog(@"swiped left");
+                
+                if (self.isFiltering) {
+                    self.isFiltering = NO;
+                    [UIView animateWithDuration:duration animations:^{
+                        [self.filterView setCenter:CGPointMake(self.theImageView.center.x - self.theImageView.bounds.size.width, self.theImageView.center.y)];
+                    }];
+                } else {
+                    self.isFiltering = YES;
+                    [self.filterView setCenter:CGPointMake(self.theImageView.center.x + self.theImageView.bounds.size.width, self.theImageView.center.y)];
+                    [UIView animateWithDuration:duration animations:^{
+                        [self.filterView setCenter:self.theImageView.center];
+                    }];
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
 }
 
 - (void) longPressGestureDidHold: (UILongPressGestureRecognizer *)sender {
@@ -143,11 +208,11 @@
 
     // Minimum font size
     if (newSize <= 9) {
-        self.fontIncreasing = YES;
+        self.isFontIncreasing = YES;
     }
     
     // Increment font size
-    if (!self.fontIncreasing) {
+    if (!self.isFontIncreasing) {
         sizeChange *= -1.0;
     }
     newSize += sizeChange;
@@ -155,7 +220,7 @@
     // Maximum font size
     UIFont *newFont = [UIFont fontWithName:self.theTextField.font.fontName size:newSize];
     if (![self textField:self.theTextField doesFit:self.theTextField.text withFont:newFont]) {
-        self.fontIncreasing = NO;
+        self.isFontIncreasing = NO;
         newFont = self.theTextField.font;
     }
     
@@ -332,6 +397,7 @@
     [self.emailButton setHidden:hide];
     [self.drawButton setHidden:hide];
     [self.cancelButton setHidden:hide];
+    [self.filterView setHidden:hide];
     if (self.isDrawing) {
         [self.colorView setHidden:hide];
         self.colorView.userInteractionEnabled = !hide;
@@ -366,36 +432,6 @@
         [self.theTextField setHidden:YES];
     }
 }
-
-//#pragma mark - UITableViewDataSource
-//
-//- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-//    
-//    // Boilerplate for table views
-//    static NSString *CellIdentifier = @"Cell";
-//    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-//    if (cell == nil) {
-//        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
-//    }
-//    
-//    // Add the appropriate font name to the cell
-//    UIFont *font = [self.fontArray objectAtIndex:indexPath.row];
-//    cell.textLabel.text = font.fontName;
-//    cell.textLabel.font = font;
-//    
-//    return cell;
-//}
-//
-//- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-//    return self.fontArray.count;
-//}
-//
-//#pragma mark - UITableViewDelegate
-//
-//- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-//    // Change the font of the text field
-//    self.theTextField.font = [self.fontArray objectAtIndex:indexPath.row];
-//}
 
 // Stamps layers into image.
 - (void)stampImage {
@@ -511,6 +547,7 @@
     [self.captureButton setHidden:YES];
     [self.flipButton setEnabled:NO];
     [self.flipButton setHidden:YES];
+    
 }
 - (IBAction)cancelPhotoPressed:(id)sender {
     
@@ -590,7 +627,7 @@
 
 #pragma mark - AVFoundationMethods
 
--(void) setupCaptureSession {
+- (void)setupCaptureSession {
     
     // Setup the Capture Session
     NSError *error = nil;
@@ -629,6 +666,40 @@
         if ([device position] == position) return device;
     }
     return nil;
+}
+
+#pragma mark - FilterViewMethods
+- (void)setupFilterView {
+    self.isFiltering = NO;
+    [self.filterView setBackgroundColor:[UIColor grayColor]];
+    [self.filterView setAlpha:0.4];
+    [self.filterView setCenter:CGPointMake(self.theImageView.center.x + self.theImageView.bounds.size.width, self.theImageView.center.y)];
+    self.locationLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.theImageView.frame.size.width, 40)];
+    self.accelerationLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.theImageView.frame.size.width, 80)];
+    [self.filterView addSubview:self.locationLabel];
+    [self.filterView addSubview:self.accelerationLabel];
+    [self.filterView setUserInteractionEnabled:NO];
+    [self.view addSubview:self.filterView];
+    
+
+    // Setup the locationManager
+    self.locationManager = [CLLocationManager new];
+    [self.locationManager requestWhenInUseAuthorization];
+    //[self.locationManager startUpdatingLocation];
+    [self.locationManager setDelegate:self];
+    
+    // Setup the motionManager
+    self.motionManager = [CMMotionManager new];
+    [self.motionManager startAccelerometerUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMAccelerometerData *accelerometerData, NSError *error) {
+        if (self.isFiltering) {
+            self.accelerationLabel.text = [NSString stringWithFormat:@"X: %f /nY: %f/n Z: %f",
+                                           accelerometerData.acceleration.x,
+                                           accelerometerData.acceleration.y,
+                                           accelerometerData.acceleration.y];
+        }
+    }];
+    
+    
 }
 
 #pragma mark - CleanUp

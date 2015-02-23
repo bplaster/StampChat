@@ -76,11 +76,9 @@
     [dbLayer setCornerRadius:4];
     
     // Setup the captureView
-    self.captureView = [[UIView alloc] initWithFrame:self.theImageView.frame];
-    //[self setupCaptureSession];
+    [self setupCaptureSession];
     
     // Setup the filterView
-    self.filterView = [[UIView alloc] initWithFrame:self.theImageView.frame];
     [self setupFilterView];
     
     // Initialize fonts for theTextField
@@ -116,14 +114,20 @@
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapGestureDidTap:)];
     UIPanGestureRecognizer *panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureDidDrag:)];
     UILongPressGestureRecognizer *longPressGestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressGestureDidHold:)];
-    UISwipeGestureRecognizer *swipeGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeGestureDidSwipe:)];
+    UISwipeGestureRecognizer *swipeRightGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeGestureDidSwipe:)];
+   UISwipeGestureRecognizer *swipeLeftGestureRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(swipeGestureDidSwipe:)];
+    swipeRightGestureRecognizer.direction = UISwipeGestureRecognizerDirectionRight;
+    swipeLeftGestureRecognizer.direction = UISwipeGestureRecognizerDirectionLeft;
+
+
+    
     [panGestureRecognizer setDelegate:self];
     
     [self.theTextField  addGestureRecognizer:panGestureRecognizer];
     [self.theImageView  addGestureRecognizer:tapGestureRecognizer];
     [self.theImageView  addGestureRecognizer:panGestureRecognizer];
-    [self.theImageView  addGestureRecognizer:swipeGestureRecognizer];
- 
+    [self.theImageView  addGestureRecognizer:swipeRightGestureRecognizer];
+    [self.theImageView  addGestureRecognizer:swipeLeftGestureRecognizer];
     [self.textButton    addGestureRecognizer:longPressGestureRecognizer];
 
     // Add subviews to views
@@ -144,8 +148,6 @@
         float duration = 0.3;
         switch (sender.direction) {
             case UISwipeGestureRecognizerDirectionRight:{
-                NSLog(@"swiped right");
-                
                 if (self.isFiltering) {
                     self.isFiltering = NO;
                     [UIView animateWithDuration:duration animations:^{
@@ -161,9 +163,6 @@
                 break;
             }
             case UISwipeGestureRecognizerDirectionLeft:{
-                
-                NSLog(@"swiped left");
-                
                 if (self.isFiltering) {
                     self.isFiltering = NO;
                     [UIView animateWithDuration:duration animations:^{
@@ -229,9 +228,7 @@
     [self.theTextField setBounds:CGRectMake(0, 0, self.theImageView.frame.size.width, self.theTextField.frame.size.height + sizeChange)];
 }
 
-// Burns current text into image
-- (UIImage *) burnText: (NSString *) text intoImage: (UIImage *) image{
-    
+- (UIImage *) burnView: (UIView *) view intoImage: (UIImage *) image {
     // Boilerplate for beginning an image context
     UIGraphicsBeginImageContextWithOptions(image.size, YES, 0.0);
     
@@ -240,7 +237,7 @@
     [image drawInRect:aRectangle];
     
     // Draw the text in the image context
-    [self.theTextField drawViewHierarchyInRect:self.theTextField.frame afterScreenUpdates:NO];
+    [view drawViewHierarchyInRect:view.frame afterScreenUpdates:NO];
     
     // Get the image to be returned before ending the image context
     UIImage *theImage = UIGraphicsGetImageFromCurrentImageContext();
@@ -249,6 +246,7 @@
     UIGraphicsEndImageContext();
     
     return theImage;
+
 }
 
 // Draws line between two points
@@ -299,7 +297,7 @@
                         [self drawBetweenPoint:self.oldTouchPoint andPoint:newTouchPoint];
                     }
                     // TODO: Need to fix this, it's clearly not working
-                } else if(sender.view.tag == self.theTextField.tag){
+                } else if(CGRectContainsPoint(self.theTextField.frame, newTouchPoint)){
                     // Calculate the change in position since last call of panGestureDidDrag (for this drag)
                     float dx = newTouchPoint.x - self.oldTouchPoint.x;
                     float dy = newTouchPoint.y - self.oldTouchPoint.y;
@@ -434,21 +432,23 @@
 }
 
 // Stamps layers into image.
-- (void)stampImage {
+- (UIImage *)stampImage {
     // Get the new image, with the latest text burned into the latest position
-    UIImage *image = [self burnText:self.theTextField.text intoImage:self.theImageView.image];
+    UIImage *image = [self burnView:self.theTextField intoImage:self.theImageView.image];
+    if (self.isFiltering) {
+        image = [self burnView:self.filterView intoImage:image];
+    }
     
     // Show the new image
-    self.theImageView.image = image;
+    return image;
 }
 
 #pragma mark - IBAction
 
 - (IBAction)saveButtonPressed:(id)sender {
-    
-    [self stampImage];
+
     // Save the image to the photo roll. note that the middle two parameters could have been left nil if we didn't want to do anything particular upon the save completing.
-    UIImageWriteToSavedPhotosAlbum(self.theImageView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+    UIImageWriteToSavedPhotosAlbum([self stampImage], self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
     
 }
 
@@ -476,7 +476,7 @@
         [self.mailComposeViewController setSubject:@"Check out my snapsterpiece"];
         
         // Get the image data and add it as an attachment to the email
-        NSData *imageData = UIImagePNGRepresentation(self.theImageView.image);
+        NSData *imageData = UIImagePNGRepresentation([self stampImage]);
         [self.mailComposeViewController addAttachmentData:imageData mimeType:@"image/png" fileName:@"snapsterpiece"];
         
         // Show mail compose view controller
@@ -628,6 +628,7 @@
 #pragma mark - AVFoundationMethods
 
 - (void)setupCaptureSession {
+    self.captureView = [[UIView alloc] initWithFrame:self.theImageView.frame];
     
     // Setup the Capture Session
     NSError *error = nil;
@@ -671,35 +672,64 @@
 #pragma mark - FilterViewMethods
 - (void)setupFilterView {
     self.isFiltering = NO;
-    [self.filterView setBackgroundColor:[UIColor grayColor]];
-    [self.filterView setAlpha:0.4];
-    [self.filterView setCenter:CGPointMake(self.theImageView.center.x + self.theImageView.bounds.size.width, self.theImageView.center.y)];
-    self.locationLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.theImageView.frame.size.width, 40)];
-    self.accelerationLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.theImageView.frame.size.width, 80)];
+    self.filterView = [[UIView alloc] initWithFrame:self.theImageView.frame];
+    [self.filterView setBackgroundColor:[UIColor blackColor]];
+    [self.filterView setAlpha:0.5];
+    
+    self.locationLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.theImageView.frame.size.width, 120)];
+    self.accelerationLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.theImageView.frame.size.width, 120)];
+    
+    [self.locationLabel setTextAlignment:NSTextAlignmentCenter];
+    [self.accelerationLabel setTextAlignment:NSTextAlignmentCenter];
+    
+    [self.locationLabel     setFont:[UIFont fontWithName:@"AppleGothic" size:30.]];
+    [self.accelerationLabel setFont:[UIFont fontWithName:@"AppleGothic" size:30.]];
+    
+    [self.locationLabel setTextColor:[UIColor whiteColor]];
+    [self.accelerationLabel setTextColor:[UIColor whiteColor]];
+    
+    [self.locationLabel setNumberOfLines:2];
+    [self.accelerationLabel setNumberOfLines:3];
+
+    [self.locationLabel setCenter: CGPointMake(self.filterView.center.x, self.filterView.center.y - 150)];
+    [self.accelerationLabel setCenter: CGPointMake(self.filterView.center.x, self.filterView.center.y + 150)];
+    
+    // Add views
     [self.filterView addSubview:self.locationLabel];
     [self.filterView addSubview:self.accelerationLabel];
     [self.filterView setUserInteractionEnabled:NO];
     [self.view addSubview:self.filterView];
     
-
+    [self.filterView setCenter:CGPointMake(self.theImageView.center.x + self.theImageView.bounds.size.width, self.theImageView.center.y)];
+    
     // Setup the locationManager
     self.locationManager = [CLLocationManager new];
     [self.locationManager requestWhenInUseAuthorization];
-    //[self.locationManager startUpdatingLocation];
+    [self.locationManager startUpdatingLocation];
     [self.locationManager setDelegate:self];
     
     // Setup the motionManager
     self.motionManager = [CMMotionManager new];
     [self.motionManager startAccelerometerUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMAccelerometerData *accelerometerData, NSError *error) {
         if (self.isFiltering) {
-            self.accelerationLabel.text = [NSString stringWithFormat:@"X: %f /nY: %f/n Z: %f",
+            self.accelerationLabel.text = [NSString stringWithFormat:@"X: %.2f\r"@"Y: %.2f\r"@"Z: %.2f",
                                            accelerometerData.acceleration.x,
                                            accelerometerData.acceleration.y,
-                                           accelerometerData.acceleration.y];
+                                           accelerometerData.acceleration.z];
         }
     }];
     
     
+}
+
+# pragma mark - CLLocationManagerDelegate Methods
+
+- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {
+
+    CLLocation *location = [locations lastObject];
+    self.locationLabel.text = [NSString stringWithFormat:@"Longitude: %f\r"@"Latitude: %f",
+                               location.coordinate.longitude,
+                               location.coordinate.latitude];
 }
 
 #pragma mark - CleanUp
